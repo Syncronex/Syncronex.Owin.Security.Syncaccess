@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
+using Newtonsoft.Json;
 
 namespace Syncronex.Owin.Security.Syncaccess
 {
@@ -28,20 +30,76 @@ namespace Syncronex.Owin.Security.Syncaccess
             return await InvokeReplyPathAsync();
         }
 
-        protected override Task<AuthenticationTicket> AuthenticateCoreAsync()
+        protected override async Task<AuthenticationTicket> AuthenticateCoreAsync()
         {
             // This is where all the magic happens...
             // this is where we get the authorization code and then turn around and
             // exchange it for an access token
 
-            //  1. Pull the authorization code and state off of the incoming request
-            //  2. Validate CSRF
-            //  3. Build up the token request
-            //  4. Make the token request
-            //  5. Handle the token response
-            //  6. (assuming valid token) Fetch user data from IDP
-            //  7. Build up the Claims Identity with data from step 6
-            throw new NotImplementedException();
+            AuthenticationProperties properties = null;
+            try
+            {
+                //  1. Pull the authorization code and state off of the incoming request
+                string code = null;
+                string state = null;
+
+                var query = Request.Query;
+                var values = query.GetValues("code");
+                if (values != null && values.Count == 1)
+                {
+                    code = values[0];
+                }
+
+                values = query.GetValues("state");
+                if (values != null & values.Count == 1)
+                {
+                    state = values[0];
+                }
+
+                properties = Options.StateDataFormat.Unprotect(state);
+                if (properties == null)
+                {
+                    return null;
+                }
+                //  2. Validate CSRF
+                if (!ValidateCorrelationId(properties, _logger))
+                {
+                    return new AuthenticationTicket(null,properties);
+                }
+                //  3. Build up the token request
+                var requestPrefix = Request.Scheme + "://" + Request.Host;
+                var redirectUri = requestPrefix + Request.PathBase + Options.CallbackPath;
+                var body = new List<KeyValuePair<string, string>>
+                {
+                    new KeyValuePair<string, string>("grant_type","authorization_code"),
+                    new KeyValuePair<string, string>("code", code),
+                    new KeyValuePair<string, string>("redirect_uri", redirectUri),
+                    new KeyValuePair<string, string>("client_id", Options.ClientId),
+                    new KeyValuePair<string, string>("client_secret", Options.ClientSecret)
+                };
+                //  4. Make the token request
+                var requestMessage = new HttpRequestMessage(HttpMethod.Post, Options.Endpoints.TokenEndpoint);
+                requestMessage.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                requestMessage.Content = new FormUrlEncodedContent(body);
+                //  5. Handle the token response
+                var tokenResponse = await _httpClient.SendAsync(requestMessage);
+                tokenResponse.EnsureSuccessStatusCode();
+                var text = await tokenResponse.Content.ReadAsStringAsync();
+                dynamic response = JsonConvert.DeserializeObject<dynamic>(text);
+                var accessToken = (string) response.access_token;
+                //  6. (assuming valid token) Fetch user data from IDP
+                // our initial token response contains user info...use that for now until we have a /user endpoint to hit
+                var refreshToken = (string) response.refresh_token;
+                var userEmail = (string) response["syncaccess:username"];
+
+                //  7. Build up the Claims Identity with data from step 6
+                
+            }
+            catch (Exception e)
+            {
+                _logger.WriteError(e.Message);
+            }
+            return new AuthenticationTicket(null,properties);
         }
 
         protected override Task ApplyResponseChallengeAsync()
