@@ -13,7 +13,7 @@ namespace Syncronex.Owin.Security.Syncaccess
 
         internal const string DefaultAuthorizationEndpointTemplate = "https://identity{0}.syncronex.com/oauth/authorize";
         internal const string DefaultTokenEndpointTemplate = "https://identity{0}.syncronex.com/oauth/token";
-        internal const string DefaultUserInfoEndpointTemplate = "https://identity{0}.syncronex.com/api/user";
+        internal const string DefaultAccountInfoEndpointTemplate = "https://identity{0}.syncronex.com/api/v1/account";
 
         internal const string DevEnvironmentString = ".dev";
         internal const string StageEnvironmentString = ".stage";

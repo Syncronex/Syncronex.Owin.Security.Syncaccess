@@ -14,8 +14,8 @@ namespace Syncronex.Owin.Security.Syncaccess
             User = user;
             AccessToken = accessToken;
             //TODO: verify the fields and move to constants
-            UserId = TryGetValue(user, "UserId");
-            Email = TryGetValue(user, "email");
+            UserId = TryGetValue(user, "id");
+            Email = TryGetValue(user, "emailAddress");
         }
         public JObject User { get; private set; }
         public string AccessToken { get; private set; }

@@ -13,7 +13,7 @@ namespace Syncronex.Owin.Security.Syncaccess
 
             AuthorizationEndpoint = string.Format(Constants.DefaultAuthorizationEndpointTemplate, envString);
             TokenEndpoint = string.Format(Constants.DefaultTokenEndpointTemplate, envString);
-            UserInfoEndpoint = string.Format(Constants.DefaultUserInfoEndpointTemplate, envString);
+            UserInfoEndpoint = string.Format(Constants.DefaultAccountInfoEndpointTemplate, envString);
         }
 
         /// <summary>

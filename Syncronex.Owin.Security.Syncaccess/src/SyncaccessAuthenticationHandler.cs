@@ -11,11 +11,14 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace Syncronex.Owin.Security.Syncaccess
 {
     public class SyncaccessAuthenticationHandler : AuthenticationHandler<SyncaccessAuthenticationOptions>
     {
+        private const string XmlSchemaString = "http://www.w3.org/2001/XMLSchema#string";
+
         private readonly ILogger _logger;
         private readonly HttpClient _httpClient;
 
@@ -90,10 +93,41 @@ namespace Syncronex.Owin.Security.Syncaccess
                 //  6. (assuming valid token) Fetch user data from IDP
                 // our initial token response contains user info...use that for now until we have a /user endpoint to hit
                 var refreshToken = (string) response.refresh_token;
-                var userEmail = (string) response["syncaccess:username"];
+                
+                var accountRequest = new HttpRequestMessage(HttpMethod.Get, Options.Endpoints.UserInfoEndpoint );
+                accountRequest.Headers.Authorization = new AuthenticationHeaderValue("bearer",accessToken);
+                accountRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                var accountResponse = await _httpClient.SendAsync(accountRequest, Request.CallCancelled);
+                accountResponse.EnsureSuccessStatusCode();
+                text = await accountResponse.Content.ReadAsStringAsync();
+                var account = JObject.Parse(text);
+
+                
 
                 //  7. Build up the Claims Identity with data from step 6
-                
+                var context = new SyncaccessAuthenticatedContext(Context,account,accessToken)
+                {
+                    Identity = new ClaimsIdentity(
+                        Options.AuthenticationType,
+                        ClaimsIdentity.DefaultNameClaimType,
+                        ClaimsIdentity.DefaultRoleClaimType
+                        )
+                };
+
+                if (!string.IsNullOrEmpty(context.UserId))
+                {
+                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier,context.UserId,"",Options.AuthenticationType));
+                }
+
+                if (!string.IsNullOrEmpty(context.Email))
+                {
+                    context.Identity.AddClaim(new Claim(ClaimsIdentity.DefaultNameClaimType,context.Email,"",Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.Email,context.Email,"",Options.AuthenticationType));
+                }
+
+                context.Properties = properties;
+                await Options.Provider.Authenticated(context);
+                return new AuthenticationTicket(context.Identity,context.Properties);
             }
             catch (Exception e)
             {
