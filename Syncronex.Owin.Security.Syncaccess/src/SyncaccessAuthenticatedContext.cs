@@ -6,28 +6,57 @@ using Newtonsoft.Json.Linq;
 
 namespace Syncronex.Owin.Security.Syncaccess
 {
+    /// <summary>
+    /// Represents authenticated user account details provided by the Authorization Server.
+    /// </summary>
     public class SyncaccessAuthenticatedContext : BaseContext
     {
-        public SyncaccessAuthenticatedContext(IOwinContext context, JObject user, string accessToken)
+        /// <summary>
+        /// Create an instance of the SyncaccessAuthenticationContext
+        /// </summary>
+        /// <param name="context">Base OwinContext from which this object derives</param>
+        /// <param name="account">Dynamic object representing the returned response from the IDP</param>
+        /// <param name="accessToken">The access token that was used to fetch the account details.</param>
+        public SyncaccessAuthenticatedContext(IOwinContext context, JObject account, string accessToken)
             : base(context)
         {
-            User = user;
+            Account = account;
             AccessToken = accessToken;
-            //TODO: verify the fields and move to constants
-            UserId = TryGetValue(user, "id");
-            Email = TryGetValue(user, "emailAddress");
+            AccountId = TryGetValue(account, Constants.SyncaccessAccountUniqueIdentifierKey);
+            Email = TryGetValue(account, Constants.SyncaccessAccountEmailAddressKey);
         }
-        public JObject User { get; private set; }
+        /// <summary>
+        /// Get the complete response object returned by the /account/ endpoint.
+        /// </summary>
+        public JObject Account { get; private set; }
+        /// <summary>
+        /// Get the access token that was used to fetch the account data
+        /// </summary>
         public string AccessToken { get; private set; }
-        public string UserId { get; private set; }
+        /// <summary>
+        /// Gets the unique identifier used by the authorization server to identify the given
+        /// account
+        /// </summary>
+        public string AccountId { get; private set; }
+        /// <summary>
+        /// Get the email address that is assigned to the account
+        /// </summary>
         public string Email { get; private set; }
+        /// <summary>
+        /// Get and Set the ClaimsIdentity object that will encode the account details
+        /// </summary>
         public ClaimsIdentity Identity { get; set; }
+        /// <summary>
+        /// Get and set the authentication properties collection
+        /// </summary>
         public AuthenticationProperties Properties { get; set; }
 
-        private static string TryGetValue(JObject user, string propertyName)
+        /// <summary>
+        /// Helper method to extract data from the returned account response
+        /// </summary>
+        private static string TryGetValue(JObject account, string propertyName)
         {
-            JToken value;
-            return user.TryGetValue(propertyName, out value) ? value.ToString() : null;
+            return account.TryGetValue(propertyName, out var value) ? value.ToString() : null;
         }
     }
 }

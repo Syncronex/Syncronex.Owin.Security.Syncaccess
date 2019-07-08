@@ -10,6 +10,10 @@ namespace Syncronex.Owin.Security.Syncaccess
     {
         public const string AuthenticationType = "Syncronex.syncAccess";
         public const string DefaultCallbackPath = "/signin-syncaccess/";
+        public const string SyncaccessAccountUniqueIdentifierKey = "id";
+        public const string SyncaccessAccountEmailAddressKey = "emailAddress";
+
+
 
         internal const string DefaultAuthorizationEndpointTemplate = "https://identity{0}.syncronex.com/oauth/authorize";
         internal const string DefaultTokenEndpointTemplate = "https://identity{0}.syncronex.com/oauth/token";
@@ -19,5 +23,11 @@ namespace Syncronex.Owin.Security.Syncaccess
         internal const string StageEnvironmentString = ".stage";
         internal const string ProdEnvironmentString = ""; // in production systems, the env portion of url is omitted
 
+        /// <summary>
+        /// Uri template for making oAuth 'Authorization Code' request to the oAuth server
+        /// </summary>
+        internal const string AuthorizationUriTemplate = "{0}?response_type=code&client_id={1}&redirect_uri={2}&scope={3}&state={4}";
+
+        internal static Task EmptyCompletedTask => Task.FromResult<object>(null);
     }
 }

@@ -6,10 +6,12 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Owin;
 using Microsoft.Owin.Infrastructure;
 using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Infrastructure;
+using Microsoft.SqlServer.Server;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -114,9 +116,9 @@ namespace Syncronex.Owin.Security.Syncaccess
                         )
                 };
 
-                if (!string.IsNullOrEmpty(context.UserId))
+                if (!string.IsNullOrEmpty(context.AccountId))
                 {
-                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier,context.UserId,"",Options.AuthenticationType));
+                    context.Identity.AddClaim(new Claim(ClaimTypes.NameIdentifier,context.AccountId,"",Options.AuthenticationType));
                 }
 
                 if (!string.IsNullOrEmpty(context.Email))
@@ -138,43 +140,29 @@ namespace Syncronex.Owin.Security.Syncaccess
 
         protected override Task ApplyResponseChallengeAsync()
         {
-            // TODO: refactor and cleanup the code
-            // This is where we put the code that redirects the user to the Authorization
-            // server's 'authorize' endpoint
+            var currentRequest = this.Request;
+            var currentOptions = this.Options;
+
             if (Response.StatusCode != 401)
             {
-                return Task.FromResult<object>(null);
+                return Constants.EmptyCompletedTask;
             }
 
-            var challenge = Helper.LookupChallenge(Options.AuthenticationType, Options.AuthenticationMode);
-            if (challenge == null) return Task.FromResult<object>(null);
+            var challenge = CheckCurrentResponsePipelineForSyncAccessChallenge(currentOptions);
+            if (challenge == null) return Constants.EmptyCompletedTask;
 
-            var baseUri = Request.Scheme +
-                          Uri.SchemeDelimiter +
-                          Request.Host +
-                          Request.PathBase;
-            var currentUri = baseUri +
-                             Request.Path +
-                             Request.QueryString;
-            var redirectUri = baseUri + Options.CallbackPath;
+            var baseUri = GetBaseUri(currentRequest);
+            var currentUri = GetCurrentUri(currentRequest, baseUri);
+            var redirectUri = GetRedirectUri(currentOptions, baseUri);
 
-            var properties = challenge.Properties;
-            if (string.IsNullOrEmpty(properties.RedirectUri))
-            {
-                properties.RedirectUri = currentUri;
-            }
-
-            GenerateCorrelationId(properties);  // OAuth2 10.12 CSRF
+            var properties = CleanseCurrentAuthenticationProperties(challenge.Properties, currentUri);
+            
+            AddCorrelationIdToCurrentAuthenticationProperties(properties);
 
             var scope = Options.TenantId;
-            var state = Options.StateDataFormat.Protect(properties);
+            var state = GetOAuthStateFromAuthenticationProperties(properties, currentOptions);
 
-            var authorizationEndpoint = Options.Endpoints.AuthorizationEndpoint +
-                                        "?response_type=code" +
-                                        "&client_id=" + Uri.EscapeDataString(Options.ClientId) +
-                                        "&redirect_uri=" + Uri.EscapeDataString(redirectUri) +
-                                        "&scope=" + Uri.EscapeDataString(scope) +
-                                        "&state=" + Uri.EscapeDataString(state);
+            var authorizationEndpoint = ConstructAuthorizationEndpoint(currentOptions, redirectUri, scope, state);
 
             Response.Redirect(authorizationEndpoint);
 
@@ -224,6 +212,81 @@ namespace Syncronex.Owin.Security.Syncaccess
             context.RequestCompleted();
 
             return context.IsRequestCompleted;
+        }
+
+        /// <summary>
+        /// Examine the current response in the pipeline to see if it contains a Challenge Response
+        /// that the syncAccessAuthenticationHandler can 'handle'.
+        /// </summary>
+        private AuthenticationResponseChallenge CheckCurrentResponsePipelineForSyncAccessChallenge(
+            SyncaccessAuthenticationOptions options)
+        {
+            var challenge = Helper.LookupChallenge(options.AuthenticationType, options.AuthenticationMode);
+            return challenge;
+        }
+
+        private static string GetBaseUri(IOwinRequest request)
+        {
+            return request.Scheme +
+                Uri.SchemeDelimiter +
+                request.Host +
+                request.PathBase;
+        }
+
+        private static string GetCurrentUri(IOwinRequest request, string baseUri)
+        {
+            return baseUri +
+                   request.Path +
+                   request.QueryString;
+        }
+
+        private static string GetRedirectUri(SyncaccessAuthenticationOptions options, string baseUri)
+        {
+            return baseUri + options.CallbackPath;
+        }
+
+        private static AuthenticationProperties CleanseCurrentAuthenticationProperties(
+            AuthenticationProperties currentProperties,string currentUri)
+        {
+            if (string.IsNullOrEmpty(currentProperties.RedirectUri))
+            {
+                currentProperties.RedirectUri = currentUri;
+            }
+
+            return currentProperties;
+        }
+
+        /// <summary>
+        /// Part of oAuth specification to guard against CSRF attacks.
+        /// See https://tools.ietf.org/html/rfc6749#section-10.12
+        /// </summary>
+        private void AddCorrelationIdToCurrentAuthenticationProperties(AuthenticationProperties properties)
+        {
+            GenerateCorrelationId(properties);
+        }
+        /// <summary>
+        /// Serialize and encrypt our current Authentication properties to send as our 'state'
+        /// param to the oAuth server
+        /// </summary>
+        /// <remarks>
+        /// Remember that the oAuth spec requires an authorization server to return the 'state' data
+        /// back to us (unchanged) as part of any redirect.
+        /// </remarks>
+        private static string GetOAuthStateFromAuthenticationProperties(AuthenticationProperties properties, SyncaccessAuthenticationOptions options)
+        {
+            return options.StateDataFormat.Protect(properties);
+        }
+
+        private static string ConstructAuthorizationEndpoint(SyncaccessAuthenticationOptions options,
+            string redirectUri, string scope, string state)
+        {
+            return string.Format(Constants.AuthorizationUriTemplate,
+                options.Endpoints.AuthorizationEndpoint,
+                Uri.EscapeDataString(options.ClientId),
+                Uri.EscapeDataString(redirectUri),
+                Uri.EscapeDataString(scope),
+                Uri.EscapeDataString(state)
+            );
         }
     }
 }
