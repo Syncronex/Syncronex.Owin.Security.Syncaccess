@@ -19,6 +19,6 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="Syncronex.Owin.Security.Syncaccess.dll" target="lib\net462\Syncronex.Owin.Security.Syncaccess.dll" />
+    <file src="bin\release\Syncronex.Owin.Security.Syncaccess.dll" target="lib\net462\Syncronex.Owin.Security.Syncaccess.dll" />
   </files>
 </package>
