@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8" ?> 
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <version>1.00</version>
+    <authors>Syncronex, LLC</authors>
+    <owners>Syncronex, LLC</owners>
+    <id>Syncronex.owin.security.syncaccess</id>
+    <title>Syncronex.owin.security.syncaccess</title>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Custom owin authentication middleware used to authenticate users against the syncAccess Authorization Service</description>
+    <copyright>Copyright 2019 Syncronex, LLC</copyright>
+    <dependencies>
+      <dependency id="Microsoft.Owin" version="4.0.1"  />
+      <dependency id="Microsoft.Owin.Security" version="4.0.1"  />
+      <dependency id="Microsoft.Owin.Security.OAuth" version="4.0.1"  />
+      <dependency id="Newtonsoft.Json" version="12.0.2" />
+      <dependency id="Owin" version="1.0" />
+      <dependency id="Seterlund.CodeGuard" version="2.3.4" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="bin\release\Syncronex.Owin.Security.Syncaccess.dll" target="lib\net462\Syncronex.Owin.Security.Syncaccess.dll" />
+  </files>
+</package>
