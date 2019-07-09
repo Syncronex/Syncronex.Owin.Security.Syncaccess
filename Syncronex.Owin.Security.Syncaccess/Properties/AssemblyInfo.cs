@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("Syncronex.Owin.Security.Syncaccess")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Owin middleware used to authenticate users against Syncronex syncAccess authorization service")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Syncronex, LLC")]
 [assembly: AssemblyProduct("Syncronex.Owin.Security.Syncaccess")]
 [assembly: AssemblyCopyright("Copyright ©  2019")]
 [assembly: AssemblyTrademark("")]
