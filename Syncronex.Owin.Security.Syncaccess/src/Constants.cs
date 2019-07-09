@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace Syncronex.Owin.Security.Syncaccess
 {
@@ -27,6 +23,9 @@ namespace Syncronex.Owin.Security.Syncaccess
         /// Uri template for making oAuth 'Authorization Code' request to the oAuth server
         /// </summary>
         internal const string AuthorizationUriTemplate = "{0}?response_type=code&client_id={1}&redirect_uri={2}&scope={3}&state={4}";
+
+        internal const string AuthorizationCodeQueryParameterName = "code";
+        internal const string StateQueryParameterName = "state";
 
         internal static Task EmptyCompletedTask => Task.FromResult<object>(null);
     }
