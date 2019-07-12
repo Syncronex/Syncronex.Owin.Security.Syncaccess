@@ -24,7 +24,6 @@ namespace Syncronex.Owin.Security.Syncaccess
 
         public SyncaccessAuthenticationHandler(ILogger logger, HttpClient httpClient)
         {
-            //TODO: Make use of the logger
             _logger = logger;
             _httpClient = httpClient;
         }
@@ -53,11 +52,13 @@ namespace Syncronex.Owin.Security.Syncaccess
                 properties = Options.StateDataFormat.Unprotect(authorizationCodeResponseInfo.State);
                 if (properties == null)
                 {
+                    _logger.WriteWarning("No state argument was returned by authorization server.");
                     return null;
                 }
 
                 if (!ValidateCorrelationId(properties, _logger))
                 {
+                    _logger.WriteWarning("Invalid correlation Id.");
                     return NullAuthenticationTicket(properties);
                 }
                 
@@ -66,6 +67,7 @@ namespace Syncronex.Owin.Security.Syncaccess
                 
                 tokenResponse.EnsureSuccessStatusCode();
                 var text = await tokenResponse.Content.ReadAsStringAsync();
+                _logger.WriteVerbose($"Access token Response from server: {text}");
 
                 var response = JsonConvert.DeserializeObject<dynamic>(text);
                 var accessToken = (string) response.access_token;
@@ -161,6 +163,8 @@ namespace Syncronex.Owin.Security.Syncaccess
                         grantIdentity.NameClaimType, grantIdentity.RoleClaimType);
                 }
                 // Set the external cookie that will be used by the RedirectUri endpoint to get auth user
+                _logger.WriteVerbose($"Setting external cookie for {grantIdentity.Name}");
+
                 Context.Authentication.SignIn(context.Properties,grantIdentity);
             }
 
@@ -168,6 +172,7 @@ namespace Syncronex.Owin.Security.Syncaccess
             var redirectUri = context.RedirectUri;
             if (context.Identity == null)
             {
+                _logger.WriteWarning("Didn't get an identity in InvokeReplyPathAsync");
                 redirectUri = WebUtilities.AddQueryString(redirectUri, "error", "access_denied");
             }
             Response.Redirect(redirectUri);
@@ -352,6 +357,8 @@ namespace Syncronex.Owin.Security.Syncaccess
             var accountResponse = await _httpClient.SendAsync(accountRequest, request.CallCancelled);
             accountResponse.EnsureSuccessStatusCode();
             var text = await accountResponse.Content.ReadAsStringAsync();
+            _logger.WriteVerbose($"Response from Account Info Call: {text}");
+            
             var account = JObject.Parse(text);
 
             return account;
