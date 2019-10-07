@@ -17,11 +17,13 @@ namespace Syncronex.Owin.Security.Syncaccess
         /// <param name="context">Base OwinContext from which this object derives</param>
         /// <param name="account">Dynamic object representing the returned response from the IDP</param>
         /// <param name="accessToken">The access token that was used to fetch the account details.</param>
-        public SyncaccessAuthenticatedContext(IOwinContext context, JObject account, string accessToken)
+        /// <param name="refreshToken">The refresh token that was returned from the token endpoint call</param>
+        public SyncaccessAuthenticatedContext(IOwinContext context, JObject account, string accessToken, string refreshToken)
             : base(context)
         {
             Account = account;
             AccessToken = accessToken;
+            RefreshToken = refreshToken;
             AccountId = TryGetValue(account, Constants.SyncaccessAccountUniqueIdentifierKey);
             Email = TryGetValue(account, Constants.SyncaccessAccountEmailAddressKey);
         }
@@ -33,6 +35,10 @@ namespace Syncronex.Owin.Security.Syncaccess
         /// Get the access token that was used to fetch the account data
         /// </summary>
         public string AccessToken { get; private set; }
+        /// <summary>
+        /// Get the refresh token (if present) that was created during the auth code-for-token exchange
+        /// </summary>
+        public string RefreshToken { get; private set; }
         /// <summary>
         /// Gets the unique identifier used by the authorization server to identify the given
         /// account

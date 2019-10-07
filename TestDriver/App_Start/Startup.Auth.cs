@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
 using Microsoft.AspNet.Identity;
 using Owin;
@@ -18,9 +19,18 @@ namespace TestDriver
                 {
                     ClientId = "adm_sync_robcom_dev",
                     ClientSecret = "foobar88",
-                    TenantId = "sync_robcom_dev"
+                    TenantId = "sync_robcom_dev",
+                    Provider = new SyncaccessAuthenticationProvider()
+                    {
+                        OnAuthenticated = OnAuthenticated
+                    }
                 });
         }
 
+        private Task OnAuthenticated(SyncaccessAuthenticatedContext arg)
+        {
+            System.Diagnostics.Debug.WriteLine(arg.RefreshToken);
+            return Task.CompletedTask;
+        }
     }
 }
