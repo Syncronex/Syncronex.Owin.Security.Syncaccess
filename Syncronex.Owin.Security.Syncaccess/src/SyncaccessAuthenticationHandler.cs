@@ -71,10 +71,11 @@ namespace Syncronex.Owin.Security.Syncaccess
 
                 var response = JsonConvert.DeserializeObject<dynamic>(text);
                 var accessToken = (string) response.access_token;
-                
+                var refreshToken = (string) response.refresh_token;
+
                 var account = await GetAccountInfoFromAuthorizationServer(accessToken, Request, Options);
 
-                var context = GetNewAuthenticatedContext(account,properties, Context, accessToken, Options);
+                var context = GetNewAuthenticatedContext(account,properties, Context, accessToken,refreshToken,Options);
 
                 await Options.Provider.Authenticated(context);
                 
@@ -367,9 +368,9 @@ namespace Syncronex.Owin.Security.Syncaccess
         /// Called to build up the authenticated context once we've received account details from the authorization
         /// server.
         /// </summary>
-        private SyncaccessAuthenticatedContext GetNewAuthenticatedContext(JObject account,AuthenticationProperties properties ,IOwinContext owinContext, string accessToken,AuthenticationOptions options)
+        private SyncaccessAuthenticatedContext GetNewAuthenticatedContext(JObject account,AuthenticationProperties properties ,IOwinContext owinContext, string accessToken,string refreshToken, AuthenticationOptions options)
         {
-            var context = new SyncaccessAuthenticatedContext(owinContext,account,accessToken)
+            var context = new SyncaccessAuthenticatedContext(owinContext,account,accessToken,refreshToken)
             {
                 Identity = new ClaimsIdentity(
                     Options.AuthenticationType,
@@ -388,6 +389,9 @@ namespace Syncronex.Owin.Security.Syncaccess
                 context.Identity.AddClaim(new Claim(ClaimsIdentity.DefaultNameClaimType,context.Email,"",options.AuthenticationType));
                 context.Identity.AddClaim(new Claim(ClaimTypes.Email,context.Email,"",options.AuthenticationType));
             }
+
+            context.Identity.AddClaim(new Claim(Constants.AccessTokenClaimType,accessToken));
+            context.Identity.AddClaim(new Claim(Constants.RefreshTokenClaimType,refreshToken));
 
             context.Properties = properties;
 

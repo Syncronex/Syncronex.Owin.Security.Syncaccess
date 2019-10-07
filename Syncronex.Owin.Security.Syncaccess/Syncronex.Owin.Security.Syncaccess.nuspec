@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <version>1.00</version>
+    <version>1.0.7</version>
     <authors>Syncronex, LLC</authors>
     <owners>Syncronex, LLC</owners>
     <id>Syncronex.owin.security.syncaccess</id>

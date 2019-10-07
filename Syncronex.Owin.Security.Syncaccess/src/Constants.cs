@@ -19,6 +19,9 @@ namespace Syncronex.Owin.Security.Syncaccess
         internal const string StageEnvironmentString = ".stage";
         internal const string ProdEnvironmentString = ""; // in production systems, the env portion of url is omitted
 
+        internal const string AccessTokenClaimType = "access_token";
+        internal const string RefreshTokenClaimType = "refresh_token";
+
         /// <summary>
         /// Uri template for making oAuth 'Authorization Code' request to the oAuth server
         /// </summary>
