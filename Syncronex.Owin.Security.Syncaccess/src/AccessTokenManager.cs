@@ -18,6 +18,11 @@ namespace Syncronex.Owin.Security.Syncaccess
             _options = options;
         }
 
+        /// <summary>
+        /// Called to exchange a refresh token for a new access token. Throws
+        /// HttpException if the refresh token is invalid (bad, expired, etc.)
+        /// 400-Bad Request
+        /// </summary>
         public async Task<string> RefreshAccessToken(string refreshToken)
         {
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, _options.Endpoints.TokenEndpoint);
@@ -43,8 +48,8 @@ namespace Syncronex.Owin.Security.Syncaccess
         }
 
         /// <summary>
-        /// Get the POST body data for our call to token endpoint (to exchange authorization code
-        /// for access token
+        /// Get the POST body data for our call to token endpoint (to exchange refresh token
+        /// for a new access token
         /// </summary>
         private FormUrlEncodedContent GetTokenRequestBody(string refreshToken)
         {
@@ -53,14 +58,9 @@ namespace Syncronex.Owin.Security.Syncaccess
                 new KeyValuePair<string, string>("grant_type","refresh_token"),
                 new KeyValuePair<string, string>("refresh_token", refreshToken),
                 new KeyValuePair<string, string>("scope", _options.TenantId)
-
-                //new KeyValuePair<string, string>("client_id", options.ClientId),
-                //new KeyValuePair<string, string>("client_secret", options.ClientSecret)
             };
 
             return new FormUrlEncodedContent(body);
         }
-
-
     }
 }
