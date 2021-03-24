@@ -9,6 +9,8 @@ using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.Identity.Owin;
 using Microsoft.Owin.Security;
 using Newtonsoft.Json;
+using Syncronex.Owin.Security.Syncaccess;
+using TestDriver.Factories;
 using TestDriver.oauth;
 
 namespace TestDriver.Controllers
@@ -39,6 +41,19 @@ namespace TestDriver.Controllers
             var jsonResult = JsonConvert.SerializeObject(simpleModel, Formatting.Indented);
 
             ViewData["SerializedLoginInfo"] = jsonResult;
+            ViewData["RefreshToken"] = simpleModel.ExternalIdentityClaims.First(c => c.Key == "refresh_token").Value;
+            return View();
+        }
+        
+        [AllowAnonymous]
+        [Route("{token}")]
+        public async Task<ActionResult> TokenFromRefresh(string token)
+        {
+            var tokenMgr = new AccessTokenManager(new AuthenticationOptionsFactory().GetOptions());
+
+            var accessToken = await tokenMgr.RefreshAccessToken(token);
+
+            ViewBag.AccessToken = accessToken;
 
             return View();
         }

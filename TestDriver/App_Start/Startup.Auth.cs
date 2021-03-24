@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Web;
-using Microsoft.AspNet.Identity;
+﻿using Microsoft.AspNet.Identity;
 using Owin;
 using Syncronex.Owin.Security.Syncaccess;
+using TestDriver.Factories;
 
 namespace TestDriver
 {
@@ -14,23 +10,7 @@ namespace TestDriver
         public void ConfigureAuth(IAppBuilder app)
         {
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
-            app.UseSyncaccessAuthentication(
-                new SyncaccessAuthenticationOptions(ESyncAccessEnvironments.Dev)
-                {
-                    ClientId = "adm_sync_robcom_dev",
-                    ClientSecret = "foobar88",
-                    TenantId = "sync_robcom_dev",
-                    Provider = new SyncaccessAuthenticationProvider()
-                    {
-                        OnAuthenticated = OnAuthenticated
-                    }
-                });
-        }
-
-        private Task OnAuthenticated(SyncaccessAuthenticatedContext arg)
-        {
-            System.Diagnostics.Debug.WriteLine(arg.RefreshToken);
-            return Task.CompletedTask;
+            app.UseSyncaccessAuthentication(new AuthenticationOptionsFactory().GetOptions());
         }
     }
 }

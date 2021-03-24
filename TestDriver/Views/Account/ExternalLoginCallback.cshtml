@@ -4,3 +4,5 @@
 <pre>
     @ViewData["SerializedLoginInfo"]
 </pre>
+
+@Html.ActionLink("Refresh token","TokenFromRefresh",new {token=ViewData["RefreshToken"]},new {@class="button"})
