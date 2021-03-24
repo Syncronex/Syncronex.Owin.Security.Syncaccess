@@ -15,6 +15,7 @@ namespace Syncronex.Owin.Security.Syncaccess
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;
+        private readonly HttpClientFactory _httpClientFactory = new HttpClientFactory();
 
         public SyncaccessAuthenticationMiddleware(OwinMiddleware next,IAppBuilder app,
             SyncaccessAuthenticationOptions options) 
@@ -34,15 +35,7 @@ namespace Syncronex.Owin.Security.Syncaccess
             if (string.IsNullOrEmpty(Options.SignInAsAuthenticationType))
                 Options.SignInAsAuthenticationType = app.GetDefaultSignInAsAuthenticationType();
 
-            _httpClient = new HttpClient()
-            {
-                Timeout = TimeSpan.FromMilliseconds(Options.AuthorizationServerTimeout),
-                MaxResponseContentBufferSize = 1024*1024*10
-            };
-
-            _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Syncronex Owin syncAccess middleware");
-            _httpClient.DefaultRequestHeaders.ExpectContinue = false;
-        }
+            _httpClient = _httpClientFactory.GetHttpClient(Options.AuthorizationServerTimeout);        }
 
         protected override AuthenticationHandler<SyncaccessAuthenticationOptions> CreateHandler()
         {
