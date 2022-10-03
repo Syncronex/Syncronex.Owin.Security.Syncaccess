@@ -197,7 +197,7 @@ namespace Syncronex.Owin.Security.Syncaccess
         /// </summary>
         private static string GetBaseUri(IOwinRequest request)
         {
-            return request.Scheme +
+            return "https" +
                 Uri.SchemeDelimiter +
                 request.Host +
                 request.PathBase;
