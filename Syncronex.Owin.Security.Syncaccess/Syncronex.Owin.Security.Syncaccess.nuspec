@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?> 
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
-    <version>1.0.7</version>
+    <version>1.1.0</version>
     <authors>Syncronex, LLC</authors>
     <owners>Syncronex, LLC</owners>
     <id>Syncronex.owin.security.syncaccess</id>
     <title>Syncronex.owin.security.syncaccess</title>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Custom owin authentication middleware used to authenticate users against the syncAccess Authorization Service</description>
-    <copyright>Copyright 2019 Syncronex, LLC</copyright>
+    <copyright>Copyright 2021 Syncronex, LLC</copyright>
     <dependencies>
       <dependency id="Microsoft.Owin" version="4.0.1"  />
       <dependency id="Microsoft.Owin.Security" version="4.0.1"  />
