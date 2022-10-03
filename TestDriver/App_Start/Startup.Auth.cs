@@ -15,9 +15,9 @@ namespace TestDriver
         {
             app.UseExternalSignInCookie(DefaultAuthenticationTypes.ExternalCookie);
             app.UseSyncaccessAuthentication(
-                new SyncaccessAuthenticationOptions(ESyncAccessEnvironments.Dev)
+                new SyncaccessAuthenticationOptions(ESyncAccessEnvironments.Production)
                 {
-                    ClientId = "adm_sync_robcom_dev",
+                    ClientId = "testClient",
                     ClientSecret = "foobar88",
                     TenantId = "sync_robcom_dev",
                     Provider = new SyncaccessAuthenticationProvider()
